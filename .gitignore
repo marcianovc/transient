@@ -1,4 +1,6 @@
 .DS_Store
+.idea
+.cache
 .env
 __pycache__/
 *.py[cod]

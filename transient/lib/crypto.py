@@ -1,5 +1,6 @@
-import dogecoinrpc
 from os import environ
+import dogecoinrpc
+from dogecoinrpc.proxy import JSONRPCException
 
 
 class CryptocurrencyClient():
@@ -8,12 +9,11 @@ class CryptocurrencyClient():
     def __init__(self):
         self.client = self.get_client()
 
-    def get_new_address(self):
+    def create_address(self):
         return self.client.getnewaddress()
 
     def get_transaction(self, txid):
-        result = self.client.getrawtransaction(txid)
-        return result
+        return self.client.gettransaction(txid)
 
     def is_valid_address(self, address):
         try:
@@ -34,3 +34,10 @@ class DogecoinClient(CryptocurrencyClient):
                 port=environ.get("DOGECOIN_RPC_PORT", 8332)
             )
         return self.client
+
+
+def get_client(currency):
+    if currency == "DOGE":
+        return DogecoinClient()
+    else:
+        raise ValueError("Invalid currency or currency not yet supported")
