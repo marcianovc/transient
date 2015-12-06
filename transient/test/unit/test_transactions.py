@@ -30,7 +30,8 @@ class TransactionsTest(BaseTestCase):
     @patch("transient.lib.crypto.DogecoinClient")
     def test_create_new_transaction(self, DogecoinClientMock, CryptocurrencyClientMock):
         transaction_data = self.make_transaction()
-        self.mixer.blend('transient.models.payment.Payment', payment_address=transaction_data["address"], amount=10, transactions=[])
+        self.mixer.blend('transient.models.payment.Payment', payment_address=transaction_data["address"],
+                         transactions=[])
 
         DogecoinClientMockInstance = DogecoinClientMock.return_value
         DogecoinClientMockInstance.get_client = MagicMock(return_value=True)
