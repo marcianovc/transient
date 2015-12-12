@@ -17,14 +17,34 @@ class TestPaymentsService(BaseTestCase):
         payment_mock.query.get.assert_called_with(mixer_payment.id)
         self.assertEqual(payment.id, mixer_payment.id)
 
+    @patch("transient.services.payments.Payment")
+    @patch('transient.services.payments.get_payment')
+    @patch("transient.services.payments.qrcode.QRCode")
+    def test_get_payment_qrcode(self, qrcode_mock, get_payment_mock, payment_mock):
+        payment = self.mixer.blend(payment_mock)
+        get_payment_mock.return_value = payment
+        qrcode_mock_instance = qrcode_mock.return_value
+        cases = [
+            ("BTC", "bitcoin:%s" % payment.payment_address),
+            ("LTC", "litecoin:%s" % payment.payment_address),
+            ("DOGE", "dogecoin:%s" % payment.payment_address),
+            ("INVALID", payment.payment_address)
+        ]
+        for case in cases:
+            payment.currency = case[0]
+            get_payment_qrcode(payment.id)
+            qrcode_mock_instance.make_image.assert_called_once_with()
+            qrcode_mock_instance.add_data.assert_called_once_with(case[1])
+            qrcode_mock.reset_mock()
+
     @patch("transient.services.payments.CoindClient")
-    def test_create_payment(self, mock_client):
+    def test_create_payment(self, client_mock):
         data = {
             "address": "DFq66AjLeoJTtpHo47fg3rYrUydZxcANLN",
             "currency": "DOGE",
             "amount": 10
         }
-        mock_client_instance = mock_client.return_value
+        mock_client_instance = client_mock.return_value
         mock_client_instance.create_address.return_value = "DHqFuLmMUSu2wzEMmpa3CDocwmbWQU49zx"
         mock_client_instance.is_valid_address.return_value = True
         payment = create_payment(**data)
@@ -39,22 +59,22 @@ class TestPaymentsService(BaseTestCase):
         self.assertEqual(payment.expires_at, None)
 
     @patch("transient.services.payments.CoindClient")
-    def test_create_payment_with_invalid_address(self, mock_client):
+    def test_create_payment_with_invalid_address(self, client_mock):
         data = {
             "address": "invalidaddress"
         }
-        mock_client.return_value.is_valid_address.return_value = False
+        client_mock.return_value.is_valid_address.return_value = False
         self.assertRaises(ValueError, create_payment, **data)
 
     @patch("transient.services.payments.CoindClient")
-    def test_create_payment_with_extreme_amounts(self, mock_client):
+    def test_create_payment_with_extreme_amounts(self, client_mock):
         data = {
             "address": "DFq66AjLeoJTtpHo47fg3rYrUydZxcANLN",
             "currency": "DOGE"
         }
         amounts = (Decimal("99999999.99999999"), Decimal("0.00000001"), Decimal("90000000"))
 
-        mock_client_instance = mock_client.return_value
+        mock_client_instance = client_mock.return_value
         mock_client_instance.create_address.return_value = "DHqFuLmMUSu2wzEMmpa3CDocwmbWQU49zx"
         mock_client_instance.is_valid_address.return_value = True
 
@@ -64,14 +84,14 @@ class TestPaymentsService(BaseTestCase):
             self.assertEqual(payment.amount, amount)
 
     @patch("transient.services.payments.CoindClient")
-    def test_create_payment_with_invalid_amount_raises_exception(self, mock_client):
+    def test_create_payment_with_invalid_amount_raises_exception(self, client_mock):
         data = {
             "address": "DFq66AjLeoJTtpHo47fg3rYrUydZxcANLN",
             "currency": "DOGE"
         }
         amounts = (Decimal("999999999999"), Decimal("-10"), Decimal("-0.1"), "potato")
 
-        mock_client_instance = mock_client.return_value
+        mock_client_instance = client_mock.return_value
         mock_client_instance.create_address.return_value = "DHqFuLmMUSu2wzEMmpa3CDocwmbWQU49zx"
         mock_client_instance.is_valid_address.return_value = True
 
@@ -99,14 +119,14 @@ class TestPaymentsService(BaseTestCase):
             (Decimal("99999.99999"), Decimal("99999.88888"), "UNDERPAID")
         ]
 
-        paid_payment = self.mixer.blend(payment_mock, min_confirmations=0, status="UNPAID")
-        get_payment_mock.return_value = paid_payment
+        payment = self.mixer.blend(payment_mock, min_confirmations=0, status="UNPAID")
+        get_payment_mock.return_value = payment
         payment_status_mock.return_value = None
 
         for case in cases:
-            paid_payment.amount = case[0]
-            paid_payment.amount_received.return_value = case[1]
-            payment = update_status(paid_payment)
+            payment.amount = case[0]
+            payment.amount_received.return_value = case[1]
+            payment = update_status(payment)
             self.assertEqual(payment.status, case[2])
 
     @patch('transient.services.payments.Payment')
@@ -123,15 +143,15 @@ class TestPaymentsService(BaseTestCase):
             (Decimal("99999.99999"), Decimal("99999.99999"), Decimal("99999.99999"), "CONFIRMED")
         ]
 
-        paid_payment = self.mixer.blend(payment_mock, status="UNPAID")
-        get_payment_mock.return_value = paid_payment
+        payment = self.mixer.blend(payment_mock, status="UNPAID")
+        get_payment_mock.return_value = payment
         payment_status_mock.return_value = None
 
         for case in cases:
-            paid_payment.amount = case[0]
-            paid_payment.amount_received.return_value = case[1]
-            paid_payment.amount_confirmed.return_value = case[2]
-            payment = update_status(paid_payment)
+            payment.amount = case[0]
+            payment.amount_received.return_value = case[1]
+            payment.amount_confirmed.return_value = case[2]
+            payment = update_status(payment)
             self.assertEqual(payment.status, case[3])
 
     @patch('transient.services.payments.Payment')
@@ -148,15 +168,16 @@ class TestPaymentsService(BaseTestCase):
             (10, 10, "PAID", "PAID", False)
         ]
 
-        paid_payment = self.mixer.blend(payment_mock, min_confirmations=0)
+        payment = self.mixer.blend(payment_mock, min_confirmations=0)
         payment_status_mock.return_value = None
-        get_payment_mock.return_value = paid_payment
+        get_payment_mock.return_value = payment
 
         for case in cases:
-            payment_status_mock.called = False
-            paid_payment.status = case[2]
-            paid_payment.amount = case[0]
-            paid_payment.amount_received.return_value = case[1]
-            payment = update_status(paid_payment)
+            payment.status = case[2]
+            payment.amount = case[0]
+            payment.amount_received.return_value = case[1]
+            payment = update_status(payment)
             self.assertEqual(payment.status, case[3])
-            self.assertEqual(payment_status_mock.called, case[4])
+            if case[4]:
+                payment_status_mock.assert_called_once_with(payment)
+            payment_status_mock.reset_mock()

@@ -1,3 +1,4 @@
+import qrcode
 from transient.models.payment import Payment, PaymentSchema
 from transient.lib.coind import CoindClient
 from transient.services.webhooks import payment_status
@@ -11,7 +12,6 @@ def get_payment(id=None, **filters):
 
 
 def get_payment_qrcode(payment, **options):
-    import qrcode
     if not isinstance(payment, type(Payment)):
        payment = get_payment(payment)
 
