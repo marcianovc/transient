@@ -10,7 +10,7 @@ class TestTransactionsService(BaseTestCase):
 
     uuid_pattern = re.compile("(\w{8}(-\w{4}){3}-\w{12}?)")
 
-    @patch("transient.services.transactions.CryptocurrencyClient")
+    @patch("transient.services.transactions.CoindClient")
     @patch("transient.services.transactions.payments")
     def test_create_transaction(self, mock_payments, mock_client):
         payment = self.mixer.blend("transient.models.payment.Payment", transactions=[])

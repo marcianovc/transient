@@ -17,7 +17,7 @@ class TestPaymentsService(BaseTestCase):
         payment_mock.query.get.assert_called_with(mixer_payment.id)
         self.assertEqual(payment.id, mixer_payment.id)
 
-    @patch("transient.services.payments.CryptocurrencyClient")
+    @patch("transient.services.payments.CoindClient")
     def test_create_payment(self, mock_client):
         data = {
             "address": "DFq66AjLeoJTtpHo47fg3rYrUydZxcANLN",
@@ -38,7 +38,7 @@ class TestPaymentsService(BaseTestCase):
         self.assertTrue(hasattr(payment, "updated_at"))
         self.assertEqual(payment.expires_at, None)
 
-    @patch("transient.services.payments.CryptocurrencyClient")
+    @patch("transient.services.payments.CoindClient")
     def test_create_payment_with_invalid_address(self, mock_client):
         data = {
             "address": "invalidaddress"
@@ -46,7 +46,7 @@ class TestPaymentsService(BaseTestCase):
         mock_client.return_value.is_valid_address.return_value = False
         self.assertRaises(ValueError, create_payment, **data)
 
-    @patch("transient.services.payments.CryptocurrencyClient")
+    @patch("transient.services.payments.CoindClient")
     def test_create_payment_with_extreme_amounts(self, mock_client):
         data = {
             "address": "DFq66AjLeoJTtpHo47fg3rYrUydZxcANLN",
@@ -63,7 +63,7 @@ class TestPaymentsService(BaseTestCase):
             payment = create_payment(**data)
             self.assertEqual(payment.amount, amount)
 
-    @patch("transient.services.payments.CryptocurrencyClient")
+    @patch("transient.services.payments.CoindClient")
     def test_create_payment_with_invalid_amount_raises_exception(self, mock_client):
         data = {
             "address": "DFq66AjLeoJTtpHo47fg3rYrUydZxcANLN",

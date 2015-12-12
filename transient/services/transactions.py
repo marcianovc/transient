@@ -1,6 +1,6 @@
 from transient.models.transaction import Transaction, TransactionSchema
 from transient.services import payments
-from transient.lib.crypto import CryptocurrencyClient
+from transient.lib.coind import CoindClient
 
 
 def create_transaction(**data):
@@ -11,7 +11,7 @@ def create_transaction(**data):
     # TODO
 
     # Get a rpc client for the payment currency type
-    client = CryptocurrencyClient(data["currency"])
+    client = CoindClient(data["currency"])
 
     # Get the transaction data
     transaction_data = client.get_transaction(data["transaction"])

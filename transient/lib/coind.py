@@ -3,7 +3,7 @@ import dogecoinrpc
 from dogecoinrpc.proxy import JSONRPCException
 
 
-class CryptocurrencyClient():
+class CoindClient():
     client = None
 
     def __init__(self, currency):

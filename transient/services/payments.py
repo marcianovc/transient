@@ -1,5 +1,5 @@
 from transient.models.payment import Payment, PaymentSchema
-from transient.lib.crypto import CryptocurrencyClient
+from transient.lib.coind import CoindClient
 from transient.services.webhooks import payment_status
 
 
@@ -40,7 +40,7 @@ def get_payment_qrcode(payment, **options):
 
 def create_payment(**raw_data):
     # Get a rpc client for the payment currency type
-    client = CryptocurrencyClient(raw_data.get("currency"))
+    client = CoindClient(raw_data.get("currency"))
 
     # Parse the input payment data
     data, errors = PaymentSchema().load(raw_data)
