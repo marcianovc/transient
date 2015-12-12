@@ -15,7 +15,7 @@ def get_connection_string():
     username = environ.get("POSTGRES_USERNAME")
     password = environ.get("POSTGRES_PASSWORD")
 
-    if not (database and username and password):
+    if not (database and username):
         sys.exit("Missing database configuration")
 
     if password:
