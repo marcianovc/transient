@@ -1,5 +1,7 @@
 # Transient
 
+[![Build Status](https://travis-ci.org/smilledge/transient.svg)](https://travis-ci.org/smilledge/transient)
+
 Transient is a simple cryptocurrency (currently only Dogecoin) payment gateway. It is designed to be used as an external service, and not integrated directly into applications.
 
 This project is still in development and is definitely not ready for use in production.
