@@ -21,7 +21,7 @@ def hello():
 
 @app.route("/payments", methods=['POST'])
 def create_payment():
-    from transient.lib.payments import create_payment
+    from transient.services.payments import create_payment
     payment = create_payment(**request.json)
     return jsonify({
         'success': True,
@@ -31,7 +31,7 @@ def create_payment():
 
 @app.route("/transactions", methods=['POST'])
 def create_transaction():
-    from transient.lib.transactions import create_transaction
+    from transient.services.transactions import create_transaction
     transaction = create_transaction(**request.json)
     return jsonify({
         'success': True,
@@ -41,7 +41,7 @@ def create_transaction():
 
 @app.route("/payments/<payment_id>/qrcode.png", methods=['GET'])
 def get_qrcode(payment_id):
-    from transient.lib.payments import get_payment_qrcode
+    from transient.services.payments import get_payment_qrcode
     image = get_payment_qrcode(payment_id)
     return serve_pil_image(image, "png")
 

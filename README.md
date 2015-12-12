@@ -93,6 +93,7 @@ TODO
 ## TODO
  - Write some tests
  - Handle under and over payments
+ - Handle large volumes from walletnotify
  - Add optional AMQP API
  - Ability to customize the size and style of QR Codes
  - Allow payments to have an expiry date

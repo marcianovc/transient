@@ -1,5 +1,6 @@
 import unittest
 from decimal import Decimal
+import uuid
 from mixer.backend.sqlalchemy import Mixer
 from transient.lib.database import session, init_db
 from transient.models.payment import Payment
@@ -15,6 +16,9 @@ valid_addresses = [
     "DHqFuLmMUSu2wzEMmpa3CDocwmbWQU49zx"
 ]
 
+def get_uuid():
+    return uuid.uuid4()
+
 def get_address():
     return random.choice(valid_addresses)
 
@@ -26,8 +30,9 @@ class BaseTestCase(unittest.TestCase):
 
     def __init__(self, methodName='runTest'):
         super(BaseTestCase, self).__init__(methodName)
-        self.mixer = Mixer(session=session, commit=True)
+        self.mixer = Mixer(session=session, commit=False)
         self.session = session
         init_db()
-        self.mixer.register(Payment, payment_address=get_address, payee_address=get_address, amount=get_amount)
-        self.mixer.register(Transaction, amount=get_amount, fee=Decimal(1))
+        self.mixer.register(Payment, id=get_uuid, payment_address=get_address, merchant_address=get_address,
+                            amount=get_amount)
+        self.mixer.register(Transaction, id=get_uuid, amount=get_amount, fee=Decimal(1))
