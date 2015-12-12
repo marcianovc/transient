@@ -3,6 +3,23 @@ language: python
 python:
   - "2.7"
 
+addons:
+  postgresql: "9.3"
+
+services:
+  - postgresql
+
+before_script:
+  - psql -c 'create database transient;' -U postgres
+
 install: "pip install -r requirements.txt"
+
+env:
+  - ENV=test
+  - POSTGRES_HOST=localhost
+  - POSTGRES_PORT=5432
+  - POSTGRES_DATABASE=transient
+  - POSTGRES_USERNAME=postgres
+  - POSTGRES_PASSWORD=
 
 script: py.test
