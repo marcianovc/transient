@@ -48,11 +48,21 @@ class Payment(Base):
         super(Payment, self).__init__(*args, **kwargs)
 
     def amount_received(self):
-        raise NotImplementedError()
+        amounts_received = map(lambda t: t.amount, self.transactions)
+        if not amounts_received:
+            return Decimal("0")
+        else:
+            return reduce(lambda x, y: x + y, amounts_received)
 
     def amount_confirmed(self):
-        raise NotImplementedError()
+        confirmed_transactions = filter(lambda t: t.confirmations >= self.confirmations_required, self.transactions)
+        amounts_confirmed = map(lambda t: t.amount, confirmed_transactions)
+        if not amounts_confirmed:
+            return Decimal("0")
+        else:
+            return reduce(lambda x, y: x + y, amounts_confirmed)
 
+    @validates("amount")
     def to_dict(self):
         payment_result = PaymentSchema().dump(self)
         return payment_result.data
@@ -70,11 +80,13 @@ class PaymentSchema(Schema):
     id = fields.Str(dump_only=True)
     currency = fields.Str()
     amount = fields.Decimal(validate=[validate_amount])
+    amount_received = fields.Method("get_amount_received")
+    amount_confirmed = fields.Method("get_amount_confirmed")
     payment_address = fields.Str()
     merchant_address = fields.Str(load_only=True)
     confirmations_required = fields.Str(load_only=True)
     status = fields.Str(dump_only=True)
-    transactions = fields.Nested(TransactionSchema(), many=True, load_only=True)
+    transactions = fields.Nested(TransactionSchema, many=True, dump_only=True)
     created_at = fields.DateTime(dump_only=True)
     updated_at = fields.DateTime(dump_only=True)
     expires_at = fields.DateTime()
@@ -86,3 +98,9 @@ class PaymentSchema(Schema):
         if data.get("address"):
             data["merchant_address"] = data.get("address")
         return data
+
+    def get_amount_received(self, obj):
+        return obj.amount_received()
+
+    def get_amount_confirmed(self, obj):
+        return obj.amount_confirmed()
