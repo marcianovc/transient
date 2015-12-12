@@ -18,8 +18,12 @@ def get_connection_string():
     if not (database and username and password):
         sys.exit("Missing database configuration")
 
-    return "postgresql://%s:%s@%s:%s/%s" % (username, password, host,
-        port, database)
+    if password:
+        auth = "%s:%s@" % (username, password)
+    else:
+        auth = "%s@" % (username)
+
+    return "postgresql://%s%s:%s/%s" % (auth, host, port, database)
 
 
 engine = create_engine(get_connection_string())
