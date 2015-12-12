@@ -15,11 +15,6 @@ before_script:
 install: "pip install -r requirements.txt"
 
 env:
-  - ENV=test
-  - POSTGRES_HOST=localhost
-  - POSTGRES_PORT=5432
-  - POSTGRES_DATABASE=transient
-  - POSTGRES_USERNAME=postgres
-  - POSTGRES_PASSWORD=
+  - ENV=test POSTGRES_HOST=localhost POSTGRES_PORT=5432 POSTGRES_DATABASE=transient POSTGRES_USERNAME=postgres POSTGRES_PASSWORD=
 
 script: py.test
