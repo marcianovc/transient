@@ -62,9 +62,11 @@ class Payment(Base):
         else:
             return reduce(lambda x, y: x + y, amounts_confirmed)
 
-    @validates("amount")
-    def to_dict(self):
-        payment_result = PaymentSchema().dump(self)
+    def to_dict(self, only=None):
+        if only:
+            payment_result = PaymentSchema(only=only).dump(self)
+        else:
+            payment_result = PaymentSchema().dump(self)
         return payment_result.data
 
     @validates("amount")

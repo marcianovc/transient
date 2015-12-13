@@ -1,6 +1,7 @@
 Flask==0.10.1
 Jinja2==2.8
 MarkupSafe==0.23
+Pillow==3.0.0
 SQLAlchemy==1.0.9
 SQLAlchemy-Utils==0.31.3
 Werkzeug==0.11.2
@@ -19,5 +20,6 @@ py==1.4.31
 pytest==2.8.3
 python-dotenv==0.3.0
 qrcode==5.1
+requests==2.8.1
 six==1.10.0
 wsgiref==0.1.2
