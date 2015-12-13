@@ -3,12 +3,19 @@ from transient.services import payments
 from transient.lib.coind import CoindClient
 
 
+def get_transaction(id=None, **filters):
+    if id:
+        return Transaction.query.get(id)
+    else:
+        return Transaction.query.filter_by(**filters).first()
+
+
 def create_transaction(**data):
     if not data["transaction"]:
         raise ValueError("Transaction ID is required")
 
     # If we already had the transaction recorded, we can just update the confirmations
-    # TODO
+    transaction = get_transaction(transaction_id=data["transaction"])
 
     # Get a rpc client for the payment currency type
     client = CoindClient(data["currency"])
@@ -25,12 +32,14 @@ def create_transaction(**data):
     # Find the payment associated with the receiving address
     payment = payments.get_payment(merchant_address=transaction_data.address)
 
-    # If we have a payment for this address, store a reference to the payment
-    if payment:
-        data["payment_id"] = payment.id
-
-    transaction_data, errors = TransactionSchema().load(data)
-    transaction = Transaction(**transaction_data)
+    # Either update the confirmations on the existing transaction, or create a new transaction
+    if transaction:
+        transaction.confirmations = transaction_data.confirmations
+    else:
+        if payment:
+            data["payment_id"] = payment.id
+        transaction_data, errors = TransactionSchema().load(data)
+        transaction = Transaction(**transaction_data)
 
     if payment:
         payments.update_status(payment)
