@@ -1,11 +1,12 @@
 import unittest
-from decimal import Decimal
+import random
 import uuid
+from decimal import Decimal
 from mixer.backend.sqlalchemy import Mixer
 from transient.lib.database import session, init_db
 from transient.models.payment import Payment
 from transient.models.transaction import Transaction
-import random
+
 
 
 valid_addresses = [
@@ -23,7 +24,7 @@ def get_address():
     return random.choice(valid_addresses)
 
 def get_amount():
-    return Decimal(random.randint(1,100))
+    return Decimal(random.randint(1, 100))
 
 
 class BaseTestCase(unittest.TestCase):

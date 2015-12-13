@@ -1,8 +1,8 @@
+import uuid
 from sqlalchemy import Column, Integer, String, Numeric, DateTime, Enum, ForeignKey, func
 from sqlalchemy_utils import UUIDType
 from marshmallow import Schema, fields, pre_load
 from transient.lib.database import Base
-import uuid
 
 
 class Transaction(Base):

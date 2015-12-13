@@ -1,6 +1,6 @@
+from os import environ
 from mock import patch
 from requests import Response
-from os import environ
 from transient.test.unit import BaseTestCase
 from transient.services.webhooks import *
 

@@ -1,7 +1,8 @@
+import re
 from decimal import Decimal
 from transient.test.unit import BaseTestCase
 from transient.models.payment import Payment, validate_amount
-import re
+
 
 class TestPaymentModel(BaseTestCase):
 

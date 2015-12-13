@@ -1,12 +1,13 @@
-from decimal import Decimal
+import uuid
 import numbers
+from decimal import Decimal
 from sqlalchemy import Column, Integer, String, Numeric, DateTime, Enum, func
 from sqlalchemy.orm import relationship, validates
 from sqlalchemy_utils import UUIDType
-from marshmallow import Schema, fields, pre_load, validate
+from marshmallow import Schema, fields, pre_load
 from transient.lib.database import Base
 from transient.models.transaction import TransactionSchema
-import uuid
+
 
 
 MAX_PAYMENT_AMOUNT = Decimal("99999999.99999999")

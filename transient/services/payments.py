@@ -11,9 +11,9 @@ def get_payment(id=None, **filters):
         return Payment.query.filter_by(**filters).first()
 
 
-def get_payment_qrcode(payment, **options):
+def get_payment_qrcode(payment):
     if not isinstance(payment, type(Payment)):
-       payment = get_payment(payment)
+        payment = get_payment(payment)
 
     if not payment:
         raise ValueError("Invalid payment id")
@@ -59,7 +59,7 @@ def create_payment(**raw_data):
 
 def update_status(payment):
     if not isinstance(payment, type(Payment)):
-       payment = get_payment(payment)
+        payment = get_payment(payment)
 
     current_status = payment.status
     new_status = current_status

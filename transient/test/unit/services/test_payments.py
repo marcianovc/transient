@@ -1,8 +1,8 @@
-from decimal import Decimal
-from transient.test.unit import BaseTestCase
-from mock import patch
-from transient.services.payments import *
 import re
+from decimal import Decimal
+from mock import patch
+from transient.test.unit import BaseTestCase
+from transient.services.payments import *
 
 
 class TestPaymentsService(BaseTestCase):

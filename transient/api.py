@@ -20,7 +20,7 @@ def hello():
 
 
 @app.route("/payments", methods=['POST'])
-def create_payment():
+def post_payment():
     from transient.services.payments import create_payment
     payment = create_payment(**request.json)
     return jsonify({
@@ -30,7 +30,7 @@ def create_payment():
 
 
 @app.route("/transactions", methods=['POST'])
-def create_transaction():
+def post_transaction():
     from transient.services.transactions import create_transaction
     transaction = create_transaction(**request.json)
     return jsonify({
@@ -47,13 +47,13 @@ def get_qrcode(payment_id):
 
 
 @app.teardown_appcontext
-def shutdown_session(exception=None):
+def shutdown_session():
     teardown()
 
 
-def serve_pil_image(pil_img, format="jpeg"):
+def serve_pil_image(pil_img, img_format="jpeg"):
     from StringIO import StringIO
     img_io = StringIO()
-    pil_img.save(img_io, format.upper())
+    pil_img.save(img_io, img_format.upper())
     img_io.seek(0)
-    return send_file(img_io, mimetype='image/%s' % (format.lower()))
+    return send_file(img_io, mimetype='image/%s' % (img_format.lower()))
