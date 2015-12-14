@@ -1,8 +1,8 @@
-from os import environ
 from mock import patch
 from requests import Response
 from transient.test.unit import BaseTestCase
 from transient.services.webhooks import *
+from transient import settings
 
 
 class TestWebhookService(BaseTestCase):
@@ -10,7 +10,7 @@ class TestWebhookService(BaseTestCase):
     @patch('transient.services.webhooks.requests')
     def test_payment_status_webhook(self, requests_mock):
         webhook_url = "http://example.com/webhook"
-        environ["PAYMENT_WEBHOOK_URL"] = webhook_url
+        settings.PAYMENT_WEBHOOK_URL = webhook_url
         response = Response()
         response.status_code = 200
         requests_mock.post.return_value = response
@@ -24,7 +24,7 @@ class TestWebhookService(BaseTestCase):
 
     @patch('transient.services.webhooks.requests')
     def test_payment_status_webhook_without_url(self, requests_mock):
-        environ["PAYMENT_WEBHOOK_URL"] = ""
+        settings.PAYMENT_WEBHOOK_URL = ""
         payment = self.mixer.blend('transient.models.payment.Payment')
         payment_status(payment)
         self.assertFalse(requests_mock.post.called, "Webhook URL was called, but it did not exist")

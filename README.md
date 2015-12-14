@@ -4,7 +4,7 @@
 
 Transient is a simple cryptocurrency (currently only Dogecoin) payment gateway. It is designed to be used as an external service, and not integrated directly into applications.
 
-This project is still in development and is definitely not ready for use in production.
+**This project is still in development and is not ready for use in production.**
 
 ## Install
 
@@ -17,7 +17,7 @@ python runserver.py
 
 ## Configure
 
-Configuration should be supplied via environment varibles (will be loaded using [pyhton-dotenv](https://github.com/theskumar/python-dotenv)). `.env.evample` provides a template with all available configuration options. This should be copied to `.env` in the project root directory.
+Configuration should be supplied via environment variables (will be loaded using [python-dotenv](https://github.com/theskumar/python-dotenv)). `.env.example` provides a template with all available configuration options. This file should be copied to `.env` in the project root directory.
 
 ### walletnotify and blocknotify
 
@@ -28,7 +28,7 @@ blocknotify=/var/www/transient/notify_block.py DOGE %s
 walletnotify=/var/www/transient/notify_transaction.py DOGE %s
 ```
 
-These are used to notify Transient of incomming transactions or blocks.
+These are used to notify Transient of incoming transactions or blocks.
 
 ## HTTP API
 
@@ -73,7 +73,7 @@ Create a new payment resource
 
 ### Payment Status Webhook
 
-You can recieve notifcations of payment status changes by adding a callback URL to the `PAYMENT_WEBHOOK_URL` configuration option.
+You can receive notifications of payment status changes by adding a callback URL to the `PAYMENT_WEBHOOK_URL` configuration option.
 
 When the status of a payment changes, Transient will make a POST request to the provided URL with the following data.
 
@@ -93,10 +93,9 @@ TODO
 TODO
 
 ## TODO
- - Write some tests
  - Handle under and over payments
  - Handle large volumes from walletnotify
  - Add optional AMQP API
  - Ability to customize the size and style of QR Codes
  - Allow payments to have an expiry date
- - Add support for Bitcoin and Dogecoin
+ - Add support for Bitcoin and Litecoin

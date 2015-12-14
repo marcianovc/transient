@@ -3,7 +3,7 @@ import random
 import uuid
 from decimal import Decimal
 from mixer.backend.sqlalchemy import Mixer
-from transient.lib.database import session, init_db
+from transient.lib.database import session
 from transient.models.payment import Payment
 from transient.models.transaction import Transaction
 
@@ -33,7 +33,6 @@ class BaseTestCase(unittest.TestCase):
         super(BaseTestCase, self).__init__(methodName)
         self.mixer = Mixer(session=session, commit=False)
         self.session = session
-        init_db()
         self.mixer.register(Payment, id=get_uuid, payment_address=get_address, merchant_address=get_address,
                             amount=get_amount)
         self.mixer.register(Transaction, id=get_uuid, amount=get_amount, fee=Decimal(1))

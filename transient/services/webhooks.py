@@ -1,11 +1,11 @@
-from os import environ
 import requests
+from transient import settings
 
 
 def payment_status(payment):
     if not payment:
         raise ValueError("Payment object is required")
-    webhook_url = environ.get("PAYMENT_WEBHOOK_URL", None)
+    webhook_url = settings.PAYMENT_WEBHOOK_URL
     if not webhook_url:
         return
     payload = payment.to_dict(("id", "status", "amount_received", "amount_confirmed"))

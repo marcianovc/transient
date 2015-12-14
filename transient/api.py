@@ -1,9 +1,8 @@
 from os import environ
 from flask import Flask, jsonify, request, send_file
-from transient import setup, teardown
+from transient.lib.database import session
 
 
-setup()
 app = Flask(__name__)
 
 
@@ -47,8 +46,8 @@ def get_qrcode(payment_id):
 
 
 @app.teardown_appcontext
-def shutdown_session():
-    teardown()
+def shutdown_session(exception=None):
+    session.remove()
 
 
 def serve_pil_image(pil_img, img_format="jpeg"):

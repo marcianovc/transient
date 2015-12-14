@@ -1,6 +1,6 @@
-from os import environ
 import dogecoinrpc
 from dogecoinrpc.proxy import JSONRPCException
+from transient import settings
 
 
 class CoindClient(object):
@@ -24,14 +24,10 @@ class CoindClient(object):
         try:
             result = self.client.validateaddress(address)
             return result.isvalid
-        except JSONRPCException:
+        except JSONRPCException, e:
             return False
 
 
 def get_dogecoin_client():
-    return dogecoinrpc.connect_to_remote(
-        environ.get("DOGECOIN_RPC_USERNAME"),
-        environ.get("DOGECOIN_RPC_PASSWORD"),
-        host=environ.get("DOGECOIN_RPC_HOST", "localhost"),
-        port=environ.get("DOGECOIN_RPC_PORT", 8332)
-    )
+    return dogecoinrpc.connect_to_remote(settings.DOGECOIN_RPC_USERNAME, settings.DOGECOIN_RPC_PASSWORD,
+                                         host=settings.DOGECOIN_RPC_HOST, port=settings.DOGECOIN_RPC_PORT)
