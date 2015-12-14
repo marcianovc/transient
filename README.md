@@ -12,6 +12,7 @@ Transient is a simple cryptocurrency (currently only Dogecoin) payment gateway. 
 git clone ...
 pip install -r requirements.txt
 cp .env.example .env # Update configuration options...
+alembic upgrade head
 python runserver.py
 ```
 
