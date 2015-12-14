@@ -1,6 +1,6 @@
 import uuid
 import numbers
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
 from sqlalchemy import Column, Integer, String, Numeric, DateTime, Enum, func
 from sqlalchemy.orm import relationship, validates
 from sqlalchemy_utils import UUIDType
@@ -82,9 +82,9 @@ class Payment(Base):
 class PaymentSchema(Schema):
     id = fields.Str(dump_only=True)
     currency = fields.Str()
-    amount = fields.Decimal(validate=[validate_amount])
-    amount_received = fields.Method("get_amount_received")
-    amount_confirmed = fields.Method("get_amount_confirmed")
+    amount = fields.Decimal(as_string=True, validate=[validate_amount])
+    amount_received = fields.Method("get_amount_received", dump_only=True)
+    amount_confirmed = fields.Method("get_amount_confirmed", dump_only=True)
     payment_address = fields.Str()
     merchant_address = fields.Str(load_only=True)
     confirmations_required = fields.Str(load_only=True)
@@ -96,14 +96,21 @@ class PaymentSchema(Schema):
 
     @pre_load
     def load_address_alias(self, data):
-        if not isinstance(data.get("amount"), numbers.Number):
-            data["amount"] = 0
-        if data.get("address"):
-            data["merchant_address"] = data.get("address")
+       # Make sure the amount is a Decimal, not string
+        if "amount" in data and not isinstance(data["amount"], numbers.Number):
+            try:
+                data["amount"] = Decimal(data["amount"])
+            except InvalidOperation:
+                data["amount"] = 0
+
+        # "address" is just an alias for "merchant_address" when creating payments
+        if "address" in data:
+            data["merchant_address"] = data["address"]
+
         return data
 
     def get_amount_received(self, obj):
-        return obj.amount_received()
+        return str(obj.amount_received())
 
     def get_amount_confirmed(self, obj):
-        return obj.amount_confirmed()
+        return str(obj.amount_confirmed())

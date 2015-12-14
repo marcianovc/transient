@@ -29,7 +29,7 @@ class TransactionSchema(Schema):
     payment_id = fields.Str()
     transaction_id = fields.Str()
     currency = fields.Str()
-    amount = fields.Decimal()
+    amount = fields.Decimal(as_string=True)
     fee = fields.Decimal()
     confirmations = fields.Integer()
     category = fields.Str()

@@ -1,5 +1,6 @@
 import re
 from decimal import Decimal
+import six
 from transient.test.unit import BaseTestCase
 from transient.models.payment import Payment, validate_amount
 
@@ -20,10 +21,12 @@ class TestPaymentModel(BaseTestCase):
         self.assertTrue(bool(self.uuid_pattern.match(payment_dict["id"])))
         self.assertTrue("amount_received" in payment_dict)
         self.assertTrue("amount_confirmed" in payment_dict)
+        self.assertIsInstance("amount_received", six.string_types)
+        self.assertIsInstance("amount_confirmed", six.string_types)
         self.assertTrue("transactions" in payment_dict)
         self.assertFalse("merchant_address" in payment_dict)
         self.assertFalse("confirmations_required" in payment_dict)
-        self.assertEqual(payment.amount, payment_dict["amount"])
+        self.assertEqual(str(payment.amount), payment_dict["amount"])
         self.assertEqual(payment.currency, payment_dict["currency"])
         self.assertEqual(payment.status, payment_dict["status"])
         self.assertEqual(payment.created_at, payment_dict["created_at"])
