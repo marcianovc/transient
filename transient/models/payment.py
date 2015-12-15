@@ -4,8 +4,9 @@ from decimal import Decimal, InvalidOperation
 from sqlalchemy import Column, Integer, String, Numeric, DateTime, Enum, func
 from sqlalchemy.orm import relationship, validates
 from sqlalchemy_utils import UUIDType
-from marshmallow import Schema, fields, pre_load
+from marshmallow import Schema, fields, pre_load, post_dump
 from transient.lib.database import Base
+from transient.lib.utils import decimal_to_string
 from transient.models.transaction import TransactionSchema
 
 
@@ -82,7 +83,7 @@ class Payment(Base):
 class PaymentSchema(Schema):
     id = fields.Str(dump_only=True)
     currency = fields.Str()
-    amount = fields.Decimal(as_string=True, validate=[validate_amount])
+    amount = fields.Decimal(validate=[validate_amount])
     amount_received = fields.Method("get_amount_received", dump_only=True)
     amount_confirmed = fields.Method("get_amount_confirmed", dump_only=True)
     payment_address = fields.Str()
@@ -109,8 +110,14 @@ class PaymentSchema(Schema):
 
         return data
 
+    @post_dump
+    def dump_decimals_to_string(self, data):
+        data["amount"] = decimal_to_string(data["amount"])
+        data["amount_received"] = decimal_to_string(data["amount_received"])
+        data["amount_confirmed"] = decimal_to_string(data["amount_confirmed"])
+
     def get_amount_received(self, obj):
-        return str(obj.amount_received())
+        return obj.amount_received()
 
     def get_amount_confirmed(self, obj):
-        return str(obj.amount_confirmed())
+        return obj.amount_confirmed()

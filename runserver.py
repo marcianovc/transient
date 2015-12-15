@@ -1,6 +1,5 @@
 #!/usr/bin/python
-from transient import setup, api
+from transient import api
 
 if __name__ == "__main__":
-    setup()
     api.run()

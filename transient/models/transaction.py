@@ -1,8 +1,9 @@
 import uuid
 from sqlalchemy import Column, Integer, String, Numeric, DateTime, Enum, ForeignKey, func
 from sqlalchemy_utils import UUIDType
-from marshmallow import Schema, fields, pre_load
+from marshmallow import Schema, fields, pre_load, post_dump
 from transient.lib.database import Base
+from transient.lib.utils import decimal_to_string
 
 
 class Transaction(Base):
@@ -23,13 +24,20 @@ class Transaction(Base):
         self.confirmations = kwargs.get("confirmations", 0)
         super(Transaction, self).__init__(*args, **kwargs)
 
+    def to_dict(self, only=None):
+        if only:
+            transaction_result = TransactionSchema(only=only).dump(self)
+        else:
+            transaction_result = TransactionSchema().dump(self)
+        return transaction_result.data
+
 
 class TransactionSchema(Schema):
     id = fields.Str(dump_only=True)
     payment_id = fields.Str()
     transaction_id = fields.Str()
     currency = fields.Str()
-    amount = fields.Decimal(as_string=True)
+    amount = fields.Decimal()
     fee = fields.Decimal()
     confirmations = fields.Integer()
     category = fields.Str()
@@ -47,3 +55,8 @@ class TransactionSchema(Schema):
         if "payment_id" in in_data:
             in_data['payment_id'] = str(in_data['payment_id'])
         return in_data
+
+    @post_dump
+    def dump_decimals_to_string(self, data):
+        data["amount"] = decimal_to_string(data["amount"])
+        data["fee"] = decimal_to_string(data["fee"])

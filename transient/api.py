@@ -14,28 +14,55 @@ def run():
 
 
 @app.route("/")
-def hello():
+def get_root():
     return "Sup?"
+
+
+@app.route("/ping")
+def get_ping():
+    return "pong"
 
 
 @app.route("/payments", methods=['POST'])
 def post_payment():
     from transient.services.payments import create_payment
-    payment = create_payment(**request.json)
-    return jsonify({
-        'success': True,
-        'payment': payment.to_dict()
-    })
+    try:
+        payment = create_payment(**request.json)
+        session.add(payment)
+        session.commit()
+    except:
+        session.rollback()
+        return jsonify({
+            'success': False
+        })
+    else:
+        return jsonify({
+            'success': True,
+            'payment': payment.to_dict()
+        })
+    finally:
+        session.remove()
 
 
 @app.route("/transactions", methods=['POST'])
 def post_transaction():
     from transient.services.transactions import create_transaction
-    transaction = create_transaction(**request.json)
-    return jsonify({
-        'success': True,
-        'transaction': transaction.to_dict()
-    })
+    try:
+        transaction = create_transaction(**request.json)
+        session.add(transaction)
+        session.commit()
+    except Exception, e:
+        session.rollback()
+        return jsonify({
+            'success': False
+        })
+    else:
+        return jsonify({
+            'success': True,
+            'transaction': transaction.to_dict()
+        })
+    finally:
+        session.remove()
 
 
 @app.route("/payments/<payment_id>/qrcode.png", methods=['GET'])

@@ -94,6 +94,8 @@ TODO
 TODO
 
 ## TODO
+ - Make integration tests suck less
+ - Find a way to test against coind servers without mocking
  - Handle under and over payments
  - Handle large volumes from walletnotify
  - Add optional AMQP API
