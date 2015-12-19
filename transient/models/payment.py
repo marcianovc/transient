@@ -112,9 +112,12 @@ class PaymentSchema(Schema):
 
     @post_dump
     def dump_decimals_to_string(self, data):
-        data["amount"] = decimal_to_string(data["amount"])
-        data["amount_received"] = decimal_to_string(data["amount_received"])
-        data["amount_confirmed"] = decimal_to_string(data["amount_confirmed"])
+        if "amount" in data:
+            data["amount"] = decimal_to_string(data["amount"])
+        if "amount_received" in data:
+            data["amount_received"] = decimal_to_string(data["amount_received"])
+        if "amount_confirmed" in data:
+            data["amount_confirmed"] = decimal_to_string(data["amount_confirmed"])
 
     def get_amount_received(self, obj):
         return obj.amount_received()

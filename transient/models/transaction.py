@@ -58,5 +58,7 @@ class TransactionSchema(Schema):
 
     @post_dump
     def dump_decimals_to_string(self, data):
-        data["amount"] = decimal_to_string(data["amount"])
-        data["fee"] = decimal_to_string(data["fee"])
+        if "amount" in data:
+            data["amount"] = decimal_to_string(data["amount"])
+        if "fee" in data:
+            data["fee"] = decimal_to_string(data["fee"])
