@@ -1,5 +1,7 @@
 from flask.ext.testing import TestCase
 from transient.lib.database import session
+from transient.models.payment import Payment
+from transient.models.transaction import Transaction
 
 
 class BaseIntegrationTest(TestCase):
@@ -9,9 +11,10 @@ class BaseIntegrationTest(TestCase):
         return app
 
     def setUp(self):
-        super(BaseIntegrationTest, self).setUp()
-        self.session = session
+        pass
 
     def tearDown(self):
-        super(BaseIntegrationTest, self).tearDown()
-        self.session.remove()
+        Payment.query.delete()
+        Transaction.query.delete()
+        session.commit()
+        session.remove()

@@ -10,7 +10,6 @@ from transient.lib.utils import decimal_to_string
 from transient.models.transaction import TransactionSchema
 
 
-
 MAX_PAYMENT_AMOUNT = Decimal("99999999.99999999")
 MIN_PAYMENT_AMOUNT = Decimal("0.00000001")
 

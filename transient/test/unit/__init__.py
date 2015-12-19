@@ -8,7 +8,6 @@ from transient.models.payment import Payment
 from transient.models.transaction import Transaction
 
 
-
 valid_addresses = [
     "DGMJjZjgdGDmgk21PARUajeUpGNrpq6kph",
     "DQJJoovaB2zhiJuTELsAmMpEZJEwDHEULa",
