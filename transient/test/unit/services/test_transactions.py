@@ -36,6 +36,26 @@ class TestTransactionsService(BaseTestCase):
         get_transaction(transaction_id=transaction_id)
         transaction_mock.query.filter_by.assert_called_with(transaction_id=transaction_id)
 
+    def test_get_unconfirmed(self):
+        Payment = "transient.models.payment.Payment"
+        Transaction = "transient.models.transaction.Transaction"
+        payment = self.mixer.blend(Payment, confirmations_required=2)
+        doge_transaction = self.mixer.blend(Transaction, payment_id=payment.id, currency="DOGE", confirmations=1)
+        doge_transaction_2 = self.mixer.blend(Transaction, payment_id=payment.id, currency="DOGE", confirmations=0)
+        btc_transaction = self.mixer.blend(Transaction, payment_id=payment.id, currency="BTC", confirmations=1)
+        confirmed_transaction = self.mixer.blend(Transaction, payment_id=payment.id, currency="DOGE", confirmations=3)
+        self.session.add(payment)
+        self.session.add(doge_transaction)
+        self.session.add(doge_transaction_2)
+        self.session.add(btc_transaction)
+        self.session.add(confirmed_transaction)
+        self.session.commit()
+        result = get_unconfirmed("DOGE")
+        self.assertIn(doge_transaction, result, "Did not include an unconfirmed transaction")
+        self.assertIn(doge_transaction, result, "Did not include an unconfirmed transaction")
+        self.assertNotIn(btc_transaction, result, "Should not include a transaction of a different currency")
+        self.assertNotIn(confirmed_transaction, result, "Should not include a confirmed transaction")
+
     @patch("transient.services.transactions.CoindClient")
     @patch("transient.services.transactions.payments")
     def test_create_transaction(self, payments_mock, coind_mock):
@@ -94,3 +114,34 @@ class TestTransactionsService(BaseTestCase):
         self.assertEqual(transaction_3.confirmations, 0)
         self.assertEqual(transaction_3.id, transaction.id, "Created a new transaction instead of updating existing "
                                                            "transaction's confirmations.")
+
+    @patch("transient.services.transactions.CoindClient")
+    @patch("transient.services.transactions.payments")
+    @patch('transient.services.transactions.get_unconfirmed')
+    @patch('transient.services.transactions.get_transaction')
+    def test_update_unconfirmed_transactions(self, get_transaction_mock, get_unconfirmed_mock, payments_mock,
+                                             coind_mock):
+        Payment = "transient.models.payment.Payment"
+        Transaction = "transient.models.transaction.Transaction"
+        payment_1 = self.mixer.blend(Payment, confirmations_required=2)
+        payment_2 = self.mixer.blend(Payment, confirmations_required=2)
+        transaction_1 = self.mixer.blend(Transaction, payment_id=payment_1.id, currency="DOGE", confirmations=1)
+        transaction_2 = self.mixer.blend(Transaction, payment_id=payment_2.id, currency="DOGE", confirmations=0)
+        transaction_3 = self.mixer.blend(Transaction, payment_id=payment_2.id, currency="DOGE", confirmations=3)
+        transaction_info_1 = self._make_transaction_info(transaction_1.transaction_id, payment_1, confirmations=2)
+        transaction_info_2 = self._make_transaction_info(transaction_2.transaction_id, payment_2, confirmations=1)
+
+        get_unconfirmed_mock.return_value = [transaction_1, transaction_2]
+        coind_instance_mock = coind_mock.return_value
+        coind_instance_mock.get_transaction.side_effect = [transaction_info_1, transaction_info_2]
+
+        updated_transactions = update_unconfirmed_transactions("DOGE")
+
+        self.assertIn(transaction_1, updated_transactions, "Did not return an updated transaction")
+        self.assertIn(transaction_2, updated_transactions, "Did not return an updated transaction")
+        self.assertNotIn(transaction_3, updated_transactions, "Returned a transaction that did not update")
+        self.assertEqual(transaction_1.confirmations, 2)
+        self.assertEqual(transaction_2.confirmations, 1)
+        self.assertEqual(payments_mock.update_status.call_count, 2)
+        payments_mock.update_status.assert_any_call(payment_1.id)
+        payments_mock.update_status.assert_any_call(payment_2.id)

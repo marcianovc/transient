@@ -35,3 +35,9 @@ class BaseTestCase(unittest.TestCase):
         self.mixer.register(Payment, id=get_uuid, payment_address=get_address, merchant_address=get_address,
                             amount=get_amount)
         self.mixer.register(Transaction, id=get_uuid, amount=get_amount, fee=Decimal(1))
+
+    def tearDown(self):
+        Transaction.query.delete()
+        Payment.query.delete()
+        self.session.commit()
+        self.session.remove()

@@ -1,3 +1,5 @@
+from sqlalchemy.orm import aliased
+from transient.models.payment import Payment
 from transient.models.transaction import Transaction, TransactionSchema
 from transient.services import payments
 from transient.lib.coind import CoindClient
@@ -8,6 +10,13 @@ def get_transaction(id=None, **filters):
         return Transaction.query.get(id)
     else:
         return Transaction.query.filter_by(**filters).first()
+
+
+def get_unconfirmed(currency):
+    payment = aliased(Payment)
+    return Transaction.query.join(payment, Transaction.payment)\
+        .filter(Transaction.currency==currency)\
+        .filter(Transaction.confirmations<payment.confirmations_required)
 
 
 def create_transaction(**data):
@@ -45,3 +54,23 @@ def create_transaction(**data):
         payments.update_status(payment)
 
     return transaction
+
+
+def update_unconfirmed_transactions(currency):
+    transactions = get_unconfirmed(currency)
+    client = CoindClient(currency)
+    updated_transactions = []
+
+    # Update the confirmations count of unconfirmed transactions
+    for transaction in transactions:
+        info = client.get_transaction(transaction.transaction_id)
+        if info.confirmations != transaction.confirmations:
+            transaction.confirmations = info.confirmations
+            updated_transactions.append(transaction)
+
+    # Update the status of any payments that had changes in their transactions
+    updated_payments = list(set([t.payment_id for t in updated_transactions]))
+    for payment_id in updated_payments:
+        payments.update_status(payment_id)
+
+    return updated_transactions

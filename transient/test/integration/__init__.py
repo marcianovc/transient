@@ -14,7 +14,7 @@ class BaseIntegrationTest(TestCase):
         pass
 
     def tearDown(self):
-        Payment.query.delete()
         Transaction.query.delete()
+        Payment.query.delete()
         session.commit()
         session.remove()
