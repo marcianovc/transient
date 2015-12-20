@@ -94,6 +94,7 @@ TODO
 TODO
 
 ## TODO
+ - Improve documentation and commenting
  - Make integration tests suck less
  - Find a way to test against coind servers without mocking
  - Handle under and over payments

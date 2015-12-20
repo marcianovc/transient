@@ -1,6 +1,6 @@
 import re
 from decimal import Decimal
-from mock import patch
+from mock import patch, mock
 from transient.test.unit import BaseTestCase
 from transient.services.payments import *
 
@@ -132,7 +132,9 @@ class TestPaymentsService(BaseTestCase):
     @patch('transient.services.payments.Payment')
     @patch('transient.services.payments.get_payment')
     @patch('transient.services.payments.payment_status')
-    def test_update_status_on_amount_confirmed(self, payment_status_mock, get_payment_mock, payment_mock):
+    @patch('transient.services.payments.process_withdrawal')
+    def test_update_status_on_amount_confirmed(self, process_withdrawal_mock, payment_status_mock, get_payment_mock,
+                                               payment_mock):
         # Amount, Amount received, Min confirmations, Confirmations, Expected status
         cases = [
             (10, 10, 0, "PAID"),
@@ -146,13 +148,18 @@ class TestPaymentsService(BaseTestCase):
         payment = self.mixer.blend(payment_mock, status="UNPAID")
         get_payment_mock.return_value = payment
         payment_status_mock.return_value = None
+        process_withdrawal.return_value = True
 
         for case in cases:
+            payment.status = "UNPAID"
             payment.amount = case[0]
             payment.amount_received.return_value = case[1]
             payment.amount_confirmed.return_value = case[2]
             payment = update_status(payment)
             self.assertEqual(payment.status, case[3])
+            if case[3] == "CONFIRMED":
+                process_withdrawal_mock.assert_called_once_with(payment)
+                process_withdrawal_mock.reset_mock()
 
     @patch('transient.services.payments.Payment')
     @patch('transient.services.payments.get_payment')
@@ -181,3 +188,33 @@ class TestPaymentsService(BaseTestCase):
             if case[4]:
                 payment_status_mock.assert_called_once_with(payment)
             payment_status_mock.reset_mock()
+
+    @patch("transient.services.payments.CoindClient")
+    def test_process_withdrawal(self, client_mock):
+        amount = Decimal("10")
+        transaction_id = "ac3b07ac490b76b7d3f845e0593030e48ac44032ba8e3690a4e5f2e09416ed76"
+
+        client_instance_mock = client_mock.return_value
+        client_instance_mock.send.return_value = transaction_id
+
+        payment = self.mixer.blend("transient.models.payment.Payment", amount=amount, confirmations_required=0,
+                                   merchant_address="DHqFuLmMUSu2wzEMmpa3CDocwmbWQU49zx")
+
+        payment.amount_confirmed = mock.Mock(return_value=amount)
+
+        withdrawal = process_withdrawal(payment)
+
+        self.assertTrue(bool(self.uuid_pattern.match(str(withdrawal.id))))
+        self.assertEqual(withdrawal.transaction_id, transaction_id, "Did not save the transaction ID")
+        client_instance_mock.send.assert_called_once_with(payment.merchant_address, payment.amount)
+
+        payment.amount_confirmed.return_value = Decimal("5")
+        self.assertRaises(ValueError, process_withdrawal, payment)
+
+    @patch('transient.services.payments.Withdrawal')
+    def test_process_withdrawal_only_creates_one_withdrawal(self, withdrawal_mock):
+        payment = self.mixer.blend("transient.models.payment.Payment")
+        withdrawal = self.mixer.blend("transient.models.withdrawal.Withdrawal", payment_id=payment.id)
+        withdrawal_mock.by_payment = mock.Mock(return_value=withdrawal)
+        new_withdrawal = process_withdrawal(payment)
+        self.assertEqual(new_withdrawal.id, withdrawal.id)

@@ -74,8 +74,8 @@ class Payment(Base):
     def validate_amount(self, key, amount):
         return validate_amount(amount)
 
-    @classmethod
-    def by_address(cls, address):
+    @staticmethod
+    def by_address(address):
         return Payment.query.filter(Payment.payment_address == address).first()
 
 

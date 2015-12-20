@@ -6,6 +6,7 @@ from mixer.backend.sqlalchemy import Mixer
 from transient.lib.database import session
 from transient.models.payment import Payment
 from transient.models.transaction import Transaction
+from transient.models.withdrawal import Withdrawal
 
 
 valid_addresses = [
@@ -35,8 +36,10 @@ class BaseTestCase(unittest.TestCase):
         self.mixer.register(Payment, id=get_uuid, payment_address=get_address, merchant_address=get_address,
                             amount=get_amount)
         self.mixer.register(Transaction, id=get_uuid, amount=get_amount, fee=Decimal(1))
+        self.mixer.register(Withdrawal, id=get_uuid, payment_id=get_uuid)
 
     def tearDown(self):
+        Withdrawal.query.delete()
         Transaction.query.delete()
         Payment.query.delete()
         self.session.commit()

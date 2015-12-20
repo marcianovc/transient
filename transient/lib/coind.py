@@ -17,15 +17,18 @@ class CoindClient(object):
     def create_address(self):
         return self.client.getnewaddress()
 
-    def get_transaction(self, txid):
-        return self.client.gettransaction(txid)
-
     def is_valid_address(self, address):
         try:
             result = self.client.validateaddress(address)
             return result.isvalid
         except JSONRPCException, e:
             return False
+
+    def get_transaction(self, txid):
+        return self.client.gettransaction(txid)
+
+    def send(self, address, amount):
+        return self.client.sendtoaddress(address, amount)
 
 
 def get_dogecoin_client():

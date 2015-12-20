@@ -1,5 +1,6 @@
 import qrcode
 from transient.models.payment import Payment, PaymentSchema
+from transient.models.withdrawal import Withdrawal
 from transient.lib.coind import CoindClient
 from transient.services.webhooks import payment_status
 
@@ -75,12 +76,50 @@ def update_status(payment):
         if amount_confirmed == amount_received:
             new_status = "CONFIRMED"
 
-    if current_status != new_status:
+    status_changed = current_status != new_status
+
+    if status_changed:
         payment.status = new_status
         payment_status(payment)
+        if payment.status == "CONFIRMED":
+            process_withdrawal(payment)
 
     return payment
 
 
 def cancel_payment(payment, **options):
     raise NotImplementedError()
+
+
+def process_overpayment(payment):
+    raise NotImplementedError()
+
+
+def process_withdrawal(payment):
+    if not hasattr(payment, "id"):
+        payment = get_payment(payment)
+
+    if not payment:
+        raise ValueError("Invalid payment id")
+
+    # Check if a withdrawal already exists for this payment
+    withdrawal = Withdrawal.by_payment(payment.id)
+    if withdrawal:
+        return withdrawal
+
+    # Check the payment has been paid and confirmed
+    is_paid = payment.amount_confirmed() == payment.amount
+    if not is_paid:
+        raise ValueError("Payment has not been confirmed")
+
+    # Get a RPC client for the payment currency type
+    client = CoindClient(payment.currency)
+
+    # Send the payment to the merchant
+    transaction_id = client.send(payment.merchant_address, payment.amount)
+
+    # Create the withdrawal record
+    withdrawal_data = dict(payment_id=payment.id, transaction_id=transaction_id)
+    withdrawal = Withdrawal.from_dict(withdrawal_data)
+
+    return withdrawal
