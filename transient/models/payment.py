@@ -38,6 +38,7 @@ class Payment(Base):
     confirmations_required = Column(Integer, nullable=False)
     status = Column(Enum(*VALID_STATUSES, name="status_types"), nullable=False)
     transactions = relationship("Transaction", backref="payment")
+    withdrawls = relationship("Withdrawal", backref="payment")
     created_at = Column(DateTime, server_default=func.now())
     updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
     expires_at = Column(DateTime)

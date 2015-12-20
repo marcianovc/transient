@@ -2,6 +2,7 @@ from flask.ext.testing import TestCase
 from transient.lib.database import session
 from transient.models.payment import Payment
 from transient.models.transaction import Transaction
+from transient.models.withdrawal import Withdrawal
 
 
 class BaseIntegrationTest(TestCase):
@@ -15,6 +16,7 @@ class BaseIntegrationTest(TestCase):
 
     def tearDown(self):
         Transaction.query.delete()
+        Withdrawal.query.delete()
         Payment.query.delete()
         session.commit()
         session.remove()
